@@ -14,7 +14,7 @@ def run():
     s = Simplex(c, A, b.transpose())
     s.run()
 
-    print(s.t)
+    print(s.tableau)
 
 
 if __name__ == '__main__':

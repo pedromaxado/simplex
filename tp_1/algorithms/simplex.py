@@ -4,10 +4,9 @@ from .certificates import Certificates
 
 class Simplex:
 
-    zero = np.zeros((1, 1))
     _eps = 1e-07
 
-    _t = None
+    _tableau = None
     _basic_solution = None
 
     _m = None
@@ -18,7 +17,7 @@ class Simplex:
         self.m = A.shape[0]
         self.n = A.shape[1]
 
-        self.t = Simplex.build_tableau(c, A, b, A.shape[0])
+        self.tableau = Simplex.build_tableau(c, A, b, A.shape[0])
 
         self.certificate = Certificates.FEASIBLE
 
@@ -35,8 +34,8 @@ class Simplex:
         return self._n
 
     @property
-    def t(self):
-        return self._t
+    def tableau(self):
+        return self._tableau
 
     @property
     def basic_solution(self):
@@ -58,16 +57,16 @@ class Simplex:
     def n(self, n):
         self._n = n
 
-    @t.setter
-    def t(self, t):
-        self._t = t
+    @tableau.setter
+    def tableau(self, t):
+        self._tableau = t
 
     @basic_solution.setter
     def basic_solution(self, bs):
         self._basic_solution = bs
 
     def print_tableau(self):
-        print("T =\n{}".format(self.t))
+        print("T =\n{}".format(self.tableau))
 
     def eps_test(self, v1, v2):
         return abs(v1 - v2) <= self.eps
@@ -86,6 +85,11 @@ class Simplex:
         t = np.concatenate((t, id), axis=1)
 
         return t
+
+    def canonical(self):
+
+        for i in range(1, self.m):
+            self.tableau[0] -= self.tableau[i]
 
     def pivot(self, t, i, j):
 
@@ -118,13 +122,16 @@ class Simplex:
 
         return True
 
-    def run(self):
+    def run(self, aux_lp=False):
 
-        t = self.t
+        if aux_lp:
+            self.canonical()
+
+        t = self.tableau
 
         while self.keep_going(t):
             i, j = self.choose_pivot(t)
             self.pivot(t, i, j)
 
         if self.certificate is Certificates.FEASIBLE:
-            return self.t[0][-1]
+            return self.tableau[0][-1]

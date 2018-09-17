@@ -5,7 +5,7 @@ from tp_1.utils import get_lp_from_file
 
 def run():
 
-    lp = LinearProgramming(get_lp_from_file('lp6.txt'))
+    lp = LinearProgramming(get_lp_from_file('lp3.txt'))
     lp.print_lp()
     lp.solve()
 

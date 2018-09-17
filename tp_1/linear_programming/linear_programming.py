@@ -10,7 +10,7 @@ class LinearProgramming:
 
     def __init__(self, lp):
 
-        self.c, self.A, self.b = LinearProgramming.standardize_lp(lp)
+        self.c, self.A, self.b = LinearProgramming.build_lp(lp)
 
     @property
     def c(self):
@@ -42,14 +42,36 @@ class LinearProgramming:
         print("A =\n{}".format(self.A))
         print("b =\n{}".format(self.b))
 
+    def build_aux_lp(self):
+
+        m = self.A.shape[0]
+        n = self.A.shape[1]
+
+        aux_c = np.concatenate((np.zeros((1, n)), np.full((1, m), -1)), axis=1)
+        aux_A = np.concatenate((self.A, np.identity(m)), axis=1)
+        aux_b = np.copy(self.b)
+
+        # TODO: verify if this operation must be saved on simplex
+        for i in range(m):
+            if self.b[i][0] < 0:
+                aux_b[i][0] *= -1
+                aux_A[i] *= -1
+
+        return aux_c, aux_A, aux_b
+
     def solve(self):
+
+        aux_c, aux_A, aux_b = self.build_aux_lp()
+        s_aux = Simplex(aux_c, aux_A, aux_b)
+        s_aux.run()
+        s_aux.print_tableau()
 
         s = Simplex(self.c, self.A, self.b)
         s.run()
         s.print_tableau()
 
     @classmethod
-    def standardize_lp(cls, lp):
+    def build_lp(cls, lp):
 
         m = lp['m']
         n = lp['n']
