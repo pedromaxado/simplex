@@ -8,6 +8,8 @@ class LinearProgramming:
     _A = None
     _b = None
 
+    _el_op = None
+
     def __init__(self, lp):
 
         self.c, self.A, self.b = LinearProgramming.build_lp(lp)
@@ -24,6 +26,10 @@ class LinearProgramming:
     def b(self):
         return self._b
 
+    @property
+    def el_op(self):
+        return self._el_op
+
     @c.setter
     def c(self, value):
         self._c = value
@@ -35,6 +41,10 @@ class LinearProgramming:
     @b.setter
     def b(self, value):
         self._b = value
+
+    @el_op.setter
+    def el_op(self, value):
+        self._el_op = value
 
     def print_lp(self):
 
@@ -48,27 +58,34 @@ class LinearProgramming:
         n = self.A.shape[1]
 
         aux_c = np.concatenate((np.zeros((1, n)), np.full((1, m), -1)), axis=1)
-        aux_A = np.concatenate((self.A, np.identity(m)), axis=1)
+        aux_A = np.copy(self.A)
         aux_b = np.copy(self.b)
 
-        # TODO: verify if this operation must be saved on simplex
         for i in range(m):
-            if self.b[i][0] < 0:
-                aux_b[i][0] *= -1
+            if aux_b[i] < 0:
                 aux_A[i] *= -1
+                aux_b[i] *= -1
+
+        aux_A = np.concatenate((aux_A, np.identity(m)), axis=1)
 
         return aux_c, aux_A, aux_b
 
     def solve(self):
 
         aux_c, aux_A, aux_b = self.build_aux_lp()
+
         s_aux = Simplex(aux_c, aux_A, aux_b)
-        s_aux.run()
+        s_aux.run(canonize=True)
         s_aux.print_tableau()
 
-        s = Simplex(self.c, self.A, self.b)
-        s.run()
-        s.print_tableau()
+        if s_aux.eps_test(s_aux.tableau[0][s_aux.n], 0):
+            self.A = s_aux.tableau[1:, :s_aux.n-s_aux.m]
+            self.b = np.array([s_aux.tableau[1:, s_aux.n]]).T
+
+            s = Simplex(self.c, self.A, self.b)
+            s.run(canonize=True)
+            s.print_tableau()
+            print(s.certificate)
 
     @classmethod
     def build_lp(cls, lp):

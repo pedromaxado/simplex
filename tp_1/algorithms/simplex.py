@@ -1,4 +1,5 @@
 import numpy as np
+from fractions import Fraction
 from .certificates import Certificates
 
 
@@ -66,6 +67,7 @@ class Simplex:
         self._basic_solution = bs
 
     def print_tableau(self):
+        np.set_printoptions(suppress=True)
         print("T =\n{}".format(self.tableau))
 
     def eps_test(self, v1, v2):
@@ -77,19 +79,21 @@ class Simplex:
         c = -c
         zero = np.zeros((1, 1))
 
-        id = np.eye(m+1, m, k=-1, dtype=float)
+        id_mtx = np.eye(m+1, m, k=-1, dtype=float)
 
         c = np.concatenate((c, zero), axis=1)
         linear_system = np.concatenate((A, b), axis=1)
         t = np.concatenate((c, linear_system))
-        t = np.concatenate((t, id), axis=1)
+        t = np.concatenate((t, id_mtx), axis=1)
 
         return t
 
     def canonical(self):
 
-        for i in range(1, self.m):
-            self.tableau[0] -= self.tableau[i]
+        t = self.tableau
+
+        for i in range(1, self.m+1):
+            t[0] -= t[i]
 
     def pivot(self, t, i, j):
 
@@ -116,15 +120,15 @@ class Simplex:
             return False
 
         for j in range(self.n + 1):
-            if all([self.eps_test(x, 0) or x < 0 for x in t[:, j]]):
+            if all([self.eps_test(x, 0) or x < 0 for x in t[1:, j]]) and t[0][j] < 0:
                 self.certificate = Certificates.UNBOUNDED
                 return False
 
         return True
 
-    def run(self, aux_lp=False):
+    def run(self, canonize=False):
 
-        if aux_lp:
+        if canonize:
             self.canonical()
 
         t = self.tableau
@@ -135,3 +139,5 @@ class Simplex:
 
         if self.certificate is Certificates.FEASIBLE:
             return self.tableau[0][-1]
+
+        return self.tableau[0][self.m]
