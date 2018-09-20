@@ -1,5 +1,6 @@
 import numpy as np
 from tp_1.algorithms import Simplex
+from tp_1.algorithms import Certificates
 
 
 class LinearProgramming:
@@ -13,6 +14,8 @@ class LinearProgramming:
     def __init__(self, lp):
 
         self.c, self.A, self.b = LinearProgramming.build_lp(lp)
+
+        self.el_op = np.eye(self.A.shape[0]+1, self.A.shape[0], k=-1, dtype=float)
 
     @property
     def c(self):
@@ -74,18 +77,26 @@ class LinearProgramming:
 
         aux_c, aux_A, aux_b = self.build_aux_lp()
 
-        s_aux = Simplex(aux_c, aux_A, aux_b)
+        print(aux_c)
+        print(aux_A)
+        print(aux_b)
+
+        s_aux = Simplex(aux_c, aux_A, aux_b, self.el_op)
         s_aux.run(canonize=True)
         s_aux.print_tableau()
+        print("")
 
         if s_aux.eps_test(s_aux.tableau[0][s_aux.n], 0):
             self.A = s_aux.tableau[1:, :s_aux.n-s_aux.m]
             self.b = np.array([s_aux.tableau[1:, s_aux.n]]).T
+            self.el_op = s_aux.tableau[:, aux_A.shape[1]+1:]
 
-            s = Simplex(self.c, self.A, self.b)
+            s = Simplex(self.c, self.A, self.b, self.el_op)
             s.run(canonize=True)
             s.print_tableau()
             print(s.certificate)
+        else:
+            print("inviavel")
 
     @classmethod
     def build_lp(cls, lp):
@@ -98,20 +109,36 @@ class LinearProgramming:
         c = lp['c']
         A = lp['A']
 
-        new_c = np.empty([1, n + add_cols])
-        new_A = np.empty([m, n + add_cols])
+        new_c = np.zeros([1, n + add_cols])
+        new_A = np.zeros([m, n + add_cols])
         new_b = lp['b']
 
-        for idx, x in enumerate(lp['vars_sign']):
-            if x:
-                new_A[:, idx] = A[:, idx]
-                new_c[0][idx] = c[0][idx]
-            else:
-                new_A[:, idx] = A[:, idx]
-                new_A[:, idx+1] = -A[:, idx]
+        col = 0
+        a_idx = 0
+        while col < n + add_cols:
+            sign = lp['vars_sign'][a_idx]
 
-                new_c[0][idx] = c[0][idx]
-                new_c[0][idx+1] = -c[0][idx]
+            new_A[:, col] = A[:, a_idx]
+            new_c[0][col] = c[0][a_idx]
+
+            if not sign:
+                col += 1
+                new_A[:, col] = -A[:, a_idx]
+                new_c[0][col] = -c[0][a_idx]
+
+            col += 1
+            a_idx += 1
+
+        # for idx, sign in enumerate(lp['vars_sign']):
+        #     if sign:
+        #         new_A[:, idx] = A[:, idx]
+        #         new_c[0][idx] = c[0][idx]
+        #     else:
+        #         new_A[:, idx] = A[:, idx]
+        #         new_A[:, idx+1] = -A[:, idx]
+        #
+        #         new_c[0][idx] = c[0][idx]
+        #         new_c[0][idx+1] = -c[0][idx]
 
         for ln, sign in enumerate(lp['inequality_signs']):
             if sign is not 0:
@@ -120,5 +147,9 @@ class LinearProgramming:
 
                 new_c = np.concatenate((new_c, np.zeros((1, 1))), axis=1)
                 new_A = np.concatenate((new_A, gap_var), axis=1)
+
+        print(new_c)
+        print(new_A)
+        print(new_b)
 
         return new_c, new_A, new_b

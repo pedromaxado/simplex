@@ -1,5 +1,4 @@
 import numpy as np
-from fractions import Fraction
 from .certificates import Certificates
 
 
@@ -13,12 +12,12 @@ class Simplex:
     _m = None
     _n = None
 
-    def __init__(self, c, A, b):
+    def __init__(self, c, A, b, el_op):
 
         self.m = A.shape[0]
         self.n = A.shape[1]
 
-        self.tableau = Simplex.build_tableau(c, A, b, A.shape[0])
+        self.tableau = Simplex.build_tableau(c, A, b, el_op)
 
         self.certificate = Certificates.FEASIBLE
 
@@ -66,27 +65,17 @@ class Simplex:
     def basic_solution(self, bs):
         self._basic_solution = bs
 
-    def print_tableau(self):
-        np.set_printoptions(suppress=True)
-        print("T =\n{}".format(self.tableau))
-
     def eps_test(self, v1, v2):
         return abs(v1 - v2) <= self.eps
 
-    @classmethod
-    def build_tableau(cls, c, A, b, m):
+    def print_tableau(self):
+        print("T =\n{}".format(self.tableau))
 
-        c = -c
-        zero = np.zeros((1, 1))
+    def get_objective_value(self):
+        return self.tableau[0][self.n]
 
-        id_mtx = np.eye(m+1, m, k=-1, dtype=float)
-
-        c = np.concatenate((c, zero), axis=1)
-        linear_system = np.concatenate((A, b), axis=1)
-        t = np.concatenate((c, linear_system))
-        t = np.concatenate((t, id_mtx), axis=1)
-
-        return t
+    def get_solution(self):
+        pass
 
     def canonical(self):
 
@@ -141,3 +130,16 @@ class Simplex:
             return self.tableau[0][-1]
 
         return self.tableau[0][self.m]
+
+    @classmethod
+    def build_tableau(cls, c, A, b, el_op):
+
+        c = -c
+        zero = np.zeros((1, 1))
+
+        c = np.concatenate((c, zero), axis=1)
+        linear_system = np.concatenate((A, b), axis=1)
+        t = np.concatenate((c, linear_system))
+        t = np.concatenate((t, el_op), axis=1)
+
+        return t

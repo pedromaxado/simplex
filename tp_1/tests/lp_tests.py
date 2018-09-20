@@ -5,8 +5,10 @@ from tp_1.utils import get_lp_from_file
 
 def run():
 
-    lp = LinearProgramming(get_lp_from_file('lp4.txt'))
-    lp.print_lp()
+    np.set_printoptions(precision=4, suppress=True, linewidth=500)
+
+    lp = LinearProgramming(get_lp_from_file('inviavel.txt'))
+    #lp.print_lp()
     lp.solve()
 
 
