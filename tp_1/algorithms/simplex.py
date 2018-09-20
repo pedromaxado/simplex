@@ -7,6 +7,7 @@ class Simplex:
     _eps = 1e-07
 
     _tableau = None
+    _base = None
     _basic_solution = None
 
     _m = None
@@ -18,6 +19,9 @@ class Simplex:
         self.n = A.shape[1]
 
         self.tableau = Simplex.build_tableau(c, A, b, el_op)
+
+        self.basic_solution = np.zeros([self.n + self.m])
+        self.basic_solution[self.n+1:] = b.T
 
         self.certificate = Certificates.FEASIBLE
 
@@ -36,6 +40,10 @@ class Simplex:
     @property
     def tableau(self):
         return self._tableau
+
+    @property
+    def base(self):
+        return self._base
 
     @property
     def basic_solution(self):
@@ -61,6 +69,10 @@ class Simplex:
     def tableau(self, t):
         self._tableau = t
 
+    @base.setter
+    def base(self, base):
+        self._base = base
+
     @basic_solution.setter
     def basic_solution(self, bs):
         self._basic_solution = bs
@@ -71,10 +83,13 @@ class Simplex:
     def print_tableau(self):
         print("T =\n{}".format(self.tableau))
 
-    def get_objective_value(self):
+    def get_obj_value(self):
         return self.tableau[0][self.n]
 
     def get_solution(self):
+        pass
+
+    def get_certificate(self):
         pass
 
     def canonical(self):
