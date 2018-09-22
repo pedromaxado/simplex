@@ -77,14 +77,9 @@ class LinearProgramming:
 
         aux_c, aux_A, aux_b = self.build_aux_lp()
 
-        print(aux_c)
-        print(aux_A)
-        print(aux_b)
-
         s_aux = Simplex(aux_c, aux_A, aux_b, self.el_op)
         s_aux.run(canonize=True)
         s_aux.print_tableau()
-        print("")
 
         if s_aux.eps_test(s_aux.tableau[0][s_aux.n], 0):
             self.A = s_aux.tableau[1:, :s_aux.n-s_aux.m]
@@ -94,7 +89,6 @@ class LinearProgramming:
             s = Simplex(self.c, self.A, self.b, self.el_op)
             s.run(canonize=True)
             s.print_tableau()
-            print(s.certificate)
         else:
             print("inviavel")
 
@@ -129,17 +123,6 @@ class LinearProgramming:
             col += 1
             a_idx += 1
 
-        # for idx, sign in enumerate(lp['vars_sign']):
-        #     if sign:
-        #         new_A[:, idx] = A[:, idx]
-        #         new_c[0][idx] = c[0][idx]
-        #     else:
-        #         new_A[:, idx] = A[:, idx]
-        #         new_A[:, idx+1] = -A[:, idx]
-        #
-        #         new_c[0][idx] = c[0][idx]
-        #         new_c[0][idx+1] = -c[0][idx]
-
         for ln, sign in enumerate(lp['inequality_signs']):
             if sign is not 0:
                 gap_var = np.zeros((m, 1))
@@ -147,9 +130,5 @@ class LinearProgramming:
 
                 new_c = np.concatenate((new_c, np.zeros((1, 1))), axis=1)
                 new_A = np.concatenate((new_A, gap_var), axis=1)
-
-        print(new_c)
-        print(new_A)
-        print(new_b)
 
         return new_c, new_A, new_b

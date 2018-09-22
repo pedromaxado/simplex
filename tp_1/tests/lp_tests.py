@@ -7,7 +7,7 @@ def run():
 
     np.set_printoptions(precision=4, suppress=True, linewidth=500)
 
-    lp = LinearProgramming(get_lp_from_file('inviavel.txt'))
+    lp = LinearProgramming(get_lp_from_file('pl3.txt'))
     #lp.print_lp()
     lp.solve()
 

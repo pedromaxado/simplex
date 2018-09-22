@@ -20,8 +20,8 @@ class Simplex:
 
         self.tableau = Simplex.build_tableau(c, A, b, el_op)
 
-        self.basic_solution = np.zeros([self.n + self.m])
-        self.basic_solution[self.n+1:] = b.T
+        self.basic_solution = np.full([self.n], -1)
+        self.basic_solution[self.n-self.m:] = list(range(1, self.m+1))
 
         self.certificate = Certificates.FEASIBLE
 
@@ -87,7 +87,17 @@ class Simplex:
         return self.tableau[0][self.n]
 
     def get_solution(self):
-        pass
+
+        solution = []
+
+        for i in range(self.n):
+            bi = self.basic_solution[i]
+            if bi == -1:
+                solution.append(0)
+            else:
+                solution.append(self.tableau[bi][self.n])
+
+        return solution
 
     def get_certificate(self):
         pass
@@ -99,6 +109,14 @@ class Simplex:
         for i in range(1, self.m+1):
             t[0] -= t[i]
 
+    def update_base(self, i, j):
+
+        for idx in range(self.n):
+            if self.basic_solution[idx] == i:
+                self.basic_solution[idx] = -1
+
+        self.basic_solution[j] = i
+
     def pivot(self, t, i, j):
 
         t[i] = (1/t[i][j])*t[i]
@@ -106,6 +124,8 @@ class Simplex:
         for ln in [x for x in range(self.m+1) if x != i]:
             if not self.eps_test(t[ln][j], 0):
                 t[ln] = (-t[ln][j])*t[i] + t[ln]
+
+        self.update_base(i, j)
 
     def choose_pivot(self, t):
 
@@ -142,7 +162,7 @@ class Simplex:
             self.pivot(t, i, j)
 
         if self.certificate is Certificates.FEASIBLE:
-            return self.tableau[0][-1]
+            return self.tableau[0][self.n]
 
         return self.tableau[0][self.m]
 
