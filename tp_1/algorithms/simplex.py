@@ -4,11 +4,11 @@ from .certificates import Certificates
 
 class Simplex:
 
-    _eps = 1e-07
+    _eps = 1e-09
 
     _tableau = None
-    _base = None
     _basic_solution = None
+    _unbounded_col = None
 
     _m = None
     _n = None
@@ -22,6 +22,8 @@ class Simplex:
 
         self.basic_solution = np.full([self.n], -1)
         self.basic_solution[self.n-self.m:] = list(range(1, self.m+1))
+
+        self.unbounded_col = -1
 
         self.certificate = Certificates.FEASIBLE
 
@@ -42,12 +44,12 @@ class Simplex:
         return self._tableau
 
     @property
-    def base(self):
-        return self._base
-
-    @property
     def basic_solution(self):
         return self._basic_solution
+
+    @property
+    def unbounded_col(self):
+        return self._unbounded_col
 
     @eps.setter
     def eps(self, eps):
@@ -69,13 +71,13 @@ class Simplex:
     def tableau(self, t):
         self._tableau = t
 
-    @base.setter
-    def base(self, base):
-        self._base = base
-
     @basic_solution.setter
     def basic_solution(self, bs):
         self._basic_solution = bs
+
+    @unbounded_col.setter
+    def unbounded_col(self, value):
+        self._unbounded_col = value
 
     def eps_test(self, v1, v2):
         return abs(v1 - v2) <= self.eps
@@ -100,7 +102,31 @@ class Simplex:
         return solution
 
     def get_certificate(self):
-        pass
+
+        if self.certificate in [Certificates.FEASIBLE, Certificates.INFEASIBLE]:
+            return self.tableau[0, self.n+1:].tolist()
+
+        certificate = np.zeros(self.n)
+        certificate[self.unbounded_col] = 1
+        col_a = 1
+
+        for i in [x for x in range(self.n) if x != self.unbounded_col]:
+            if self.basic_solution[i] != -1:
+                certificate[i] = -self.tableau[col_a][self.unbounded_col]
+                col_a += 1
+            else:
+                certificate[i] = 0
+
+        return certificate
+
+    def get_c(self):
+        return self.tableau[0, :self.n]
+
+    def get_A(self):
+        return self.tableau[1:, :self.n - self.m]
+
+    def get_b(self):
+        return np.array([self.tableau[1:, self.n]]).T
 
     def canonical(self):
 
@@ -146,6 +172,7 @@ class Simplex:
         for j in range(self.n + 1):
             if all([self.eps_test(x, 0) or x < 0 for x in t[1:, j]]) and t[0][j] < 0:
                 self.certificate = Certificates.UNBOUNDED
+                self.unbounded_col = j
                 return False
 
         return True
@@ -161,10 +188,12 @@ class Simplex:
             i, j = self.choose_pivot(t)
             self.pivot(t, i, j)
 
-        if self.certificate is Certificates.FEASIBLE:
-            return self.tableau[0][self.n]
-
-        return self.tableau[0][self.m]
+        return {
+            "obj_value": self.get_obj_value(),
+            "solution": self.get_solution(),
+            "feasibility": self.certificate,
+            "certificate": self.get_certificate()
+        }
 
     @classmethod
     def build_tableau(cls, c, A, b, el_op):

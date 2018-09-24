@@ -58,5 +58,11 @@ def get_lp_from_file(file_name):
     return build_lp(read_file('../data/' + file_name))
 
 
+def write_result_on_file(file_name, msg_str):
+
+    with open('../data/' + file_name, 'w') as f:
+        f.write(msg_str)
+
+
 if __name__ == '__main__':
     print(get_lp_from_file('lp1.txt'))

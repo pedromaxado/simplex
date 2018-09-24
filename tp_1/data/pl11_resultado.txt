@@ -1,0 +1,6 @@
+Status: otimo
+Objetivo: 7.4000
+Solução:
+6.8000 0.0000 0.0000 0.2000
+Certificado:
+1.8000 -0.4000

@@ -11,11 +11,15 @@ class LinearProgramming:
 
     _el_op = None
 
+    _feasibility = None
+
     def __init__(self, lp):
 
         self.c, self.A, self.b = LinearProgramming.build_lp(lp)
 
         self.el_op = np.eye(self.A.shape[0]+1, self.A.shape[0], k=-1, dtype=float)
+
+        self.feasibility = Certificates.FEASIBLE
 
     @property
     def c(self):
@@ -33,6 +37,10 @@ class LinearProgramming:
     def el_op(self):
         return self._el_op
 
+    @property
+    def feasibility(self):
+        return self._feasibility
+
     @c.setter
     def c(self, value):
         self._c = value
@@ -48,6 +56,10 @@ class LinearProgramming:
     @el_op.setter
     def el_op(self, value):
         self._el_op = value
+
+    @feasibility.setter
+    def feasibility(self, value):
+        self._feasibility = value
 
     def print_lp(self):
 
@@ -78,19 +90,53 @@ class LinearProgramming:
         aux_c, aux_A, aux_b = self.build_aux_lp()
 
         s_aux = Simplex(aux_c, aux_A, aux_b, self.el_op)
-        s_aux.run(canonize=True)
-        s_aux.print_tableau()
+        aux_result = s_aux.run(canonize=True)
 
-        if s_aux.eps_test(s_aux.tableau[0][s_aux.n], 0):
-            self.A = s_aux.tableau[1:, :s_aux.n-s_aux.m]
-            self.b = np.array([s_aux.tableau[1:, s_aux.n]]).T
+        result_msg = "Status: "
+
+        if s_aux.eps_test(aux_result['obj_value'], 0):
+            self.A = s_aux.get_A()
+            self.b = s_aux.get_b()
             self.el_op = s_aux.tableau[:, aux_A.shape[1]+1:]
 
             s = Simplex(self.c, self.A, self.b, self.el_op)
-            s.run(canonize=True)
-            s.print_tableau()
+            result = s.run(canonize=True)
+
+            if result['feasibility'] is Certificates.FEASIBLE:
+
+                result_msg += "otimo\n"
+
+                result_msg += "Objetivo: %.4f\n" % result['obj_value']
+
+                result_msg += "Solução:\n"
+                result_msg += '%.4f' % result['solution'][0]
+
+                for i in range(1, len(result['solution'])):
+                    result_msg += " %.4f" % result['solution'][i]
+
+                result_msg += "\nCertificado:\n"
+                result_msg += '%.4f' % result['certificate'][0]
+
+                for i in range(1, len(result['certificate'])):
+                    result_msg += " %.4f" % result['certificate'][i]
+            else:
+                result_msg += "ilimitado\n"
+                result_msg += "Certificado:\n"
+
+                result_msg += '%.4f' % result['certificate'][0]
+
+                for i in range(1, len(result['certificate'])):
+                    result_msg += " %.4f" % result['certificate'][i]
         else:
-            print("inviavel")
+            result_msg += "inviavel\n"
+            result_msg += "Certificado:\n"
+
+            result_msg += '%.4f' % aux_result['certificate'][0]
+
+            for i in range(1, len(aux_result['certificate'])):
+                result_msg += " %.4f" % aux_result['certificate'][i]
+
+        return result_msg
 
     @classmethod
     def build_lp(cls, lp):
