@@ -55,12 +55,12 @@ def build_lp(lp):
 
 
 def get_lp_from_file(file_name):
-    return build_lp(read_file('../data/' + file_name))
+    return build_lp(read_file('../data/pls/' + file_name))
 
 
 def write_result_on_file(file_name, msg_str):
 
-    with open('../data/' + file_name, 'w') as f:
+    with open('../data/solutions/' + file_name, 'w') as f:
         f.write(msg_str)
 
 

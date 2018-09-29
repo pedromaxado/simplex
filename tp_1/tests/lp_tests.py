@@ -18,7 +18,7 @@ def run():
     lp = LinearProgramming(get_lp_from_file(file_prefix + '.txt'))
     message = lp.solve()
 
-    write_result_on_file(file_prefix + '_resultado.txt', message)
+    write_result_on_file(file_prefix + '.txt', message)
 
 
 if __name__ == '__main__':
