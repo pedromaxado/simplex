@@ -99,42 +99,42 @@ class LinearProgramming:
             self.b = s_aux.get_b()
             self.el_op = s_aux.tableau[:, aux_A.shape[1]+1:]
 
-            s = Simplex(self.c, self.A, self.b, self.el_op)
+            s = Simplex(self.c, self.A, self.b, self.el_op, aux_result['base'])
             result = s.run(canonize=True)
 
             if result['feasibility'] is Certificates.FEASIBLE:
 
                 result_msg += "otimo\n"
 
-                result_msg += "Objetivo: %.4f\n" % result['obj_value']
+                result_msg += "Objetivo: %f\n" % result['obj_value']
 
                 result_msg += "Solução:\n"
-                result_msg += '%.4f' % result['solution'][0]
+                result_msg += '%f' % result['solution'][0]
 
                 for i in range(1, len(result['solution'])):
-                    result_msg += " %.4f" % result['solution'][i]
+                    result_msg += " %f" % result['solution'][i]
 
                 result_msg += "\nCertificado:\n"
-                result_msg += '%.4f' % result['certificate'][0]
+                result_msg += '%f' % result['certificate'][0]
 
                 for i in range(1, len(result['certificate'])):
-                    result_msg += " %.4f" % result['certificate'][i]
+                    result_msg += " %f" % result['certificate'][i]
             else:
                 result_msg += "ilimitado\n"
                 result_msg += "Certificado:\n"
 
-                result_msg += '%.4f' % result['certificate'][0]
+                result_msg += '%f' % result['certificate'][0]
 
                 for i in range(1, len(result['certificate'])):
-                    result_msg += " %.4f" % result['certificate'][i]
+                    result_msg += " %f" % result['certificate'][i]
         else:
             result_msg += "inviavel\n"
             result_msg += "Certificado:\n"
 
-            result_msg += '%.4f' % aux_result['certificate'][0]
+            result_msg += '%f' % aux_result['certificate'][0]
 
             for i in range(1, len(aux_result['certificate'])):
-                result_msg += " %.4f" % aux_result['certificate'][i]
+                result_msg += " %f" % aux_result['certificate'][i]
 
         return result_msg
 

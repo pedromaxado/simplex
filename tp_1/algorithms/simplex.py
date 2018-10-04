@@ -7,21 +7,24 @@ class Simplex:
     _eps = 1e-09
 
     _tableau = None
-    _basic_solution = None
+    _base = None
     _unbounded_col = None
 
     _m = None
     _n = None
 
-    def __init__(self, c, A, b, el_op):
+    def __init__(self, c, A, b, el_op, base=None):
 
         self.m = A.shape[0]
         self.n = A.shape[1]
 
         self.tableau = Simplex.build_tableau(c, A, b, el_op)
 
-        self.basic_solution = np.full([self.n], -1)
-        self.basic_solution[self.n-self.m:] = list(range(1, self.m+1))
+        if base is not None:
+            self.base = base
+        else:
+            self.base = np.full([self.n], -1)
+            self.base[self.n - self.m:] = list(range(1, self.m + 1))
 
         self.unbounded_col = -1
 
@@ -44,8 +47,8 @@ class Simplex:
         return self._tableau
 
     @property
-    def basic_solution(self):
-        return self._basic_solution
+    def base(self):
+        return self._base
 
     @property
     def unbounded_col(self):
@@ -71,9 +74,9 @@ class Simplex:
     def tableau(self, t):
         self._tableau = t
 
-    @basic_solution.setter
-    def basic_solution(self, bs):
-        self._basic_solution = bs
+    @base.setter
+    def base(self, bs):
+        self._base = bs
 
     @unbounded_col.setter
     def unbounded_col(self, value):
@@ -93,7 +96,7 @@ class Simplex:
         solution = []
 
         for i in range(self.n):
-            bi = self.basic_solution[i]
+            bi = self.base[i]
             if bi == -1:
                 solution.append(0)
             else:
@@ -111,7 +114,7 @@ class Simplex:
         col_a = 1
 
         for i in [x for x in range(self.n) if x != self.unbounded_col]:
-            if self.basic_solution[i] != -1:
+            if self.base[i] != -1:
                 certificate[i] = -self.tableau[col_a][self.unbounded_col]
                 col_a += 1
             else:
@@ -132,16 +135,17 @@ class Simplex:
 
         t = self.tableau
 
-        for i in range(1, self.m+1):
-            t[0] -= t[i]
+        for i in range(self.n):
+            if self.base[i] > -1:
+                t[0] -= t[0][i]*t[self.base[i]]
 
     def update_base(self, i, j):
 
         for idx in range(self.n):
-            if self.basic_solution[idx] == i:
-                self.basic_solution[idx] = -1
+            if self.base[idx] == i:
+                self.base[idx] = -1
 
-        self.basic_solution[j] = i
+        self.base[j] = i
 
     def pivot(self, t, i, j):
 
@@ -190,6 +194,7 @@ class Simplex:
 
         return {
             "obj_value": self.get_obj_value(),
+            "base": self.base[:self.n-self.m],
             "solution": self.get_solution(),
             "feasibility": self.certificate,
             "certificate": self.get_certificate()

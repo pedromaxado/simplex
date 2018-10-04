@@ -5,13 +5,13 @@ from tp_1.utils import get_lp_from_file, write_result_on_file
 
 def run():
 
-    # np.set_printoptions(precision=4, suppress=True, linewidth=500)
+    np.set_printoptions(precision=4, suppress=True, linewidth=500)
 
-    for i in range(1, 12):
-        lp = LinearProgramming(get_lp_from_file('pl' + str(i) + '.txt'))
+    for i in range(0, 10):
+        lp = LinearProgramming(get_lp_from_file('pl_y' + str(i) + '.txt'))
         message = lp.solve()
 
-        write_result_on_file('pl' + str(i) + '.txt', message)
+        write_result_on_file('pl_y' + str(i) + '.txt', message)
 
     file_prefix = 'inviavel'
 
