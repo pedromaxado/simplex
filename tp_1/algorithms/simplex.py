@@ -115,7 +115,7 @@ class Simplex:
 
         for i in [x for x in range(self.n) if x != self.unbounded_col]:
             if self.base[i] != -1:
-                certificate[i] = -self.tableau[col_a][self.unbounded_col]
+                certificate[i] = -self.tableau[self.base[i]][self.unbounded_col]
                 col_a += 1
             else:
                 certificate[i] = 0
