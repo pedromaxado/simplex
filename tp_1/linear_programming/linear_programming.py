@@ -1,4 +1,5 @@
 import numpy as np
+from fractions import Fraction
 from tp_1.algorithms import Simplex
 from tp_1.algorithms import Certificates
 
@@ -17,7 +18,7 @@ class LinearProgramming:
 
         self.c, self.A, self.b = LinearProgramming.build_lp(lp)
 
-        self.el_op = np.eye(self.A.shape[0]+1, self.A.shape[0], k=-1, dtype=float)
+        self.el_op = np.eye(self.A.shape[0]+1, self.A.shape[0], k=-1, dtype=Fraction)
 
         self.feasibility = Certificates.FEASIBLE
 
@@ -72,7 +73,7 @@ class LinearProgramming:
         m = self.A.shape[0]
         n = self.A.shape[1]
 
-        aux_c = np.concatenate((np.zeros((1, n)), np.full((1, m), -1)), axis=1)
+        aux_c = np.concatenate((np.zeros((1, n), dtype=Fraction), np.full((1, m), Fraction(-1), dtype=Fraction)), axis=1)
         aux_A = np.copy(self.A)
         aux_b = np.copy(self.b)
 
@@ -81,7 +82,7 @@ class LinearProgramming:
                 aux_A[i] *= -1
                 aux_b[i] *= -1
 
-        aux_A = np.concatenate((aux_A, np.identity(m)), axis=1)
+        aux_A = np.concatenate((aux_A, np.identity(m, dtype=Fraction)), axis=1)
 
         return aux_c, aux_A, aux_b
 
@@ -108,7 +109,7 @@ class LinearProgramming:
 
                 result_msg += "Objetivo: %f\n" % result['obj_value']
 
-                result_msg += "Solução:\n"
+                result_msg += "Solucao:\n"
                 result_msg += '%f' % result['solution'][0]
 
                 for i in range(1, len(result['solution'])):
@@ -149,8 +150,8 @@ class LinearProgramming:
         c = lp['c']
         A = lp['A']
 
-        new_c = np.zeros([1, n + add_cols])
-        new_A = np.zeros([m, n + add_cols])
+        new_c = np.zeros([1, n + add_cols], dtype=Fraction)
+        new_A = np.zeros([m, n + add_cols], dtype=Fraction)
         new_b = lp['b']
 
         col = 0
@@ -171,10 +172,10 @@ class LinearProgramming:
 
         for ln, sign in enumerate(lp['inequality_signs']):
             if sign is not 0:
-                gap_var = np.zeros((m, 1))
-                gap_var[ln][0] = sign
+                gap_var = np.zeros((m, 1), dtype=Fraction)
+                gap_var[ln][0] = Fraction(str(sign))
 
-                new_c = np.concatenate((new_c, np.zeros((1, 1))), axis=1)
+                new_c = np.concatenate((new_c, np.zeros((1, 1), dtype=Fraction)), axis=1)
                 new_A = np.concatenate((new_A, gap_var), axis=1)
 
         return new_c, new_A, new_b

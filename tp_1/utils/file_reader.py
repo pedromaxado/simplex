@@ -1,4 +1,5 @@
 import numpy as np
+from fractions import Fraction
 
 
 def read_file(file_name):
@@ -44,11 +45,11 @@ def build_lp(lp):
 
         "vars_sign": [int(x) for x in lp[2]],
 
-        "c": np.array([[float(x) for x in lp[3]]]),
-        "A": np.array([[float(lp[i][j]) for j in range(n)] for i in range(4, 4+m)]),
-        "b": np.array([[float(lp[i][-1]) for i in range(4, 4+m)]]).transpose(),
+        "c": np.array([[Fraction(x) for x in lp[3]]], dtype=Fraction),
+        "A": np.array([[Fraction(lp[i][j]) for j in range(n)] for i in range(4, 4 + m)], dtype=Fraction),
+        "b": np.array([[Fraction(lp[i][-1]) for i in range(4, 4 + m)]], dtype=Fraction).transpose(),
 
-        "inequality_signs": [1 if lp[i][-2] == "<=" else -1 if lp[i][-2] == ">=" else 0 for i in range(4, 4+m)]
+        "inequality_signs": [1 if lp[i][-2] == "<=" else -1 if lp[i][-2] == ">=" else 0 for i in range(4, 4 + m)]
     }
 
     return lp_dict

@@ -1,6 +1,6 @@
 Status: otimo
 Objetivo: -5.857143
-Solução:
+Solucao:
 0.000000 4.714286 2.214286 0.000000
 Certificado:
 -0.928571 0.428571

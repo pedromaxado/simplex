@@ -1,4 +1,5 @@
 import numpy as np
+from fractions import Fraction
 from .certificates import Certificates
 
 
@@ -23,7 +24,7 @@ class Simplex:
         if base is not None:
             self.base = base
         else:
-            self.base = np.full([self.n], -1)
+            self.base = np.full([self.n], Fraction('-1'), dtype=Fraction)
             self.base[self.n - self.m:] = list(range(1, self.m + 1))
 
         self.unbounded_col = -1
@@ -152,7 +153,7 @@ class Simplex:
         t[i] = (1/t[i][j])*t[i]
 
         for ln in [x for x in range(self.m+1) if x != i]:
-            if not self.eps_test(t[ln][j], 0):
+            if t[ln][j] != 0:
                 t[ln] = (-t[ln][j])*t[i] + t[ln]
 
         self.update_base(i, j)
@@ -163,18 +164,18 @@ class Simplex:
         ratios = []
 
         for i in range(1, self.m + 1):
-            if not self.eps_test(t[i][col], 0) and not t[i][col] < 0:
+            if t[i][col] > 0:
                 ratios.append([t[i][self.n]/t[i][col], i])
 
         return min(ratios)[1], col
 
     def keep_going(self, t):
 
-        if all([self.eps_test(x, 0) or x > 0 for x in t[0, :self.n]]):
+        if all([x >= 0 for x in t[0, :self.n]]):
             return False
 
         for j in range(self.n + 1):
-            if all([self.eps_test(x, 0) or x < 0 for x in t[1:, j]]) and t[0][j] < 0:
+            if all([x <= 0 for x in t[1:, j]]) and t[0][j] < 0:
                 self.certificate = Certificates.UNBOUNDED
                 self.unbounded_col = j
                 return False
@@ -204,7 +205,7 @@ class Simplex:
     def build_tableau(cls, c, A, b, el_op):
 
         c = -c
-        zero = np.zeros((1, 1))
+        zero = np.zeros((1, 1), dtype=Fraction)
 
         c = np.concatenate((c, zero), axis=1)
         linear_system = np.concatenate((A, b), axis=1)
