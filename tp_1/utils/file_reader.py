@@ -18,7 +18,7 @@ def read_file(file_name):
         lp = f.readlines()
 
     for i in range(len(lp)):
-        lp[i] = lp[i].rstrip('\n').split(' ')
+        lp[i] = lp[i].rstrip().split(' ')
 
     return lp
 
